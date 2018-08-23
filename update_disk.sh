@@ -1,6 +1,32 @@
 #!/bin/bash
 
-diff -r "$1" "$2" > data
+ex=1
+nb=0
+echo ""
+diff -r "$1" "$2" > data & pid_foo=$!
+while [[ ex -eq 1 ]]; do tput rc; tput ed;
+if [[ nb -eq 0 ]]; then
+	printf "please wait: (-)"
+	((nb++))
+elif [[ nb -eq 1 ]]; then	
+	printf "please wait: (\\)"
+	((nb++))
+elif [[ nb -eq 2 ]]; then
+	printf "please wait: (|)"
+	((nb++))
+elif [[ nb -eq 3 ]]; then
+	printf "please wait: (/)"
+	nb=0
+fi
+sleep 1; done & pid_while=$!
+wait $pid_foo
+kill $pid_while
+sleep 1
+tput rc; tput ed;
+echo ""
+
+echo "Analyse Folders: done"
+
 exec 3< "$(pwd)/data"
 
 line=""
@@ -24,7 +50,7 @@ do
 			fi
 		done
 		var1=$(echo $var2 | cut -d ':' -f 2)
-		var1=$(echo $var1 | cut -d ' ' -f 2)
+		var1="${var1:1}"
 
 		var2=$(echo $var2 | cut -d ':' -f 1)
 		var2="$var2/$var1"
@@ -42,11 +68,11 @@ do
 		done
 
 		nameFolder=$(echo $var2 | cut -d '/' -f 1)
-
 		if [[ "$nameFolder" = "$2" ]]; then
 			cp -r "$2/$path" "$1/$path" 
 			echo "copy o: $2/$path ===> $1"
 		fi
+
 
 	elif [[ "$m1" = "diff" && "$m2" = "-r" ]]; then
 		count=3
@@ -102,4 +128,7 @@ do
 	
 done
 echo "--------------*******************************************---------------"
-diff -r "$1" "$2"
+
+
+
+diff -r "$1" "$2" 
