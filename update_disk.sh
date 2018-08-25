@@ -1,9 +1,10 @@
 #!/bin/bash
+DATE=`date '+%Y-%m-%d %H:%M:%S'`
 
 ex=1
 nb=0
 echo ""
-diff -r "$1" "$2" > data & pid_foo=$!
+diff -r "$1" "$2" > "update_disk: $DATE" & pid_foo=$!
 while [[ ex -eq 1 ]]; do tput rc; tput ed;
 if [[ nb -eq 0 ]]; then
 	printf "please wait: (-)"
@@ -27,7 +28,7 @@ echo ""
 
 echo "Analyse Folders: done"
 
-exec 3< "$(pwd)/data"
+exec 3< "$(pwd)/update_disk: $DATE"
 
 line=""
 i=0
@@ -56,6 +57,12 @@ do
 		var2="$var2/$var1"
 
 		count=2
+		nameFolder=$(echo $var2 | cut -d '/' -f 1)
+		while [[ ! "$nameFolder" = "$2" && ! "$nameFolder" = "$1" ]]; do
+			v=$(echo $var2 | cut -d '/' -f $count)
+			nameFolder="$nameFolder/$v"
+			((count++))
+		done
 
 		m1=$(echo $var2 | cut -d '/' -f $count)
 		path=$m1
@@ -66,12 +73,12 @@ do
 				path="$path/$m1"
 			fi
 		done
-
-		nameFolder=$(echo $var2 | cut -d '/' -f 1)
+				
 		if [[ "$nameFolder" = "$2" ]]; then
+			echo "copy o: $2/$path ===> $1/$path"
 			cp -r "$2/$path" "$1/$path" 
-			echo "copy o: $2/$path ===> $1"
 		fi
+		
 
 
 	elif [[ "$m1" = "diff" && "$m2" = "-r" ]]; then
